@@ -283,7 +283,7 @@
     (ag_bel (bel_type moment) (bel_pobj ev9))
     (ag_bel (bel_type moment) (bel_pobj road_sign1) (bel_pname type) (bel_pval tunnel))
 =>
-    (assert (ag_bel (bel_type fluent) (bel_pname tunel) (bel_pval no))))
+    (assert (ag_bel (bel_type fluent) (bel_pname tunel) (bel_pval no)))
 )
 
 (defrule AGENT::tunel_sfarsit
