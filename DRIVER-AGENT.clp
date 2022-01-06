@@ -281,7 +281,7 @@
 
 
 (deffunction iesire_tunel(?l1 ?l2)
-  (if (< 300 (- ?l2 ?l1))  then (return true)
+  (if (> 300 (- ?l2 ?l1))  then (return true)
   						  else (return false)
   )
 )
