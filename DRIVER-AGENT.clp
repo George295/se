@@ -185,30 +185,37 @@
 (defrule AGENT::linie_continua
     (timp (valoare ?t))
     (ag_bel (bel_type moment) (bel_pobj ev6))
-    (ag_bel (bel_type moment) (bel_pobj line1) (bel_pname type) (bel_pval ?v))
+    (ag_bel (bel_type moment) (bel_pobj line1) (bel_pname type) (bel_pval continuous_line))
 =>
-    (if (eq ?v continuous_line) then (printout t "Linie continua."  crlf)
-        (assert (ag_bel (bel_type fluent) (bel_pname no-overtaking-zone) (bel_pval yes)))
-        (printout t "Depasire interzisa! "  crlf)
-    else (printout t "Nu este linie continua."  crlf)
-            (assert (ag_bel (bel_type fluent) (bel_pname no-overtaking-zone) (bel_pval no)))
-        (printout t "Depasire permisa! "  crlf)
-    )
+    (assert (ag_bel (bel_type fluent) (bel_pname linie_continua) (bel_pval yes)))
+)
+
+(defrule AGENT::linie_continua_sfarsit
+    (timp (valoare ?t))
+    (ag_bel (bel_type moment) (bel_pobj ev6))
+    (ag_bel (bel_type moment) (bel_pobj line1) (bel_pname type) (bel_pval broken_white_line))
+    ?f <- (ag_bel (bel_type fluent) (bel_pname linie_continua) (bel_pval yes)))
+=>
+    (retract ?f)
 )
 
 (defrule AGENT::statie_tramvai_fara_refugiu
     (timp (valoare ?t))
     (ag_bel (bel_type moment) (bel_pobj ev7))
     (ag_bel (bel_type moment) (bel_pobj tram1) (bel_pname partof) (bel_pval ?lane2))
-    (ag_bel (bel_type moment) (bel_pobj ?lane2) (bel_pname type) (bel_pval ?v))
+    (ag_bel (bel_type moment) (bel_pobj ?lane2) (bel_pname type) (bel_pval basic_lane))
 =>
-        (if (eq ?v basic_lane) then (printout t "Tramvai in statie fara refugiu."  crlf)
-				    (assert (ag_bel (bel_type fluent) (bel_pname no-overtaking-zone) (bel_pval yes)))
-				    (printout t "Depasire interzisa! "  crlf)
-			       else (printout t "Statie cu refugiu."  crlf)
-				    (assert (ag_bel (bel_type fluent) (bel_pname no-overtaking-zone) (bel_pval no)))
-				    (printout t "Depasire permisa! "  crlf)
-        )
+    (assert (ag_bel (bel_type fluent) (bel_pname statie_tramvai_fara_refugiu) (bel_pval yes)))
+)
+
+(defrule AGENT::statie_tramvai_fara_refugiu_sfarsit
+    (timp (valoare ?t))
+    (ag_bel (bel_type moment) (bel_pobj ev7))
+    (ag_bel (bel_type moment) (bel_pobj tram1) (bel_pname partof) (bel_pval ?lane2))
+    (ag_bel (bel_type moment) (bel_pobj ?lane2) (bel_pname type) (bel_pval basic_lane))
+    ?f <- (ag_bel (bel_type fluent) (bel_pname statie_tramvai_fara_refugiu) (bel_pval yes))
+=>
+    (retract ?f)
 )
 
 (defrule AGENT::trecere_pietoni
@@ -264,25 +271,30 @@
     (retract ?f)
 )
 
-(defrule AGENT::tunel
-	(declare (salience 100))
-    (timp (valoare ?t))
-    (ag_bel (bel_type moment) (bel_pobj ev9))
-    (ag_bel (bel_type moment) (bel_pobj road_sign1) (bel_pname type) (bel_pval ?v))
-=>
-    (if (eq ?v tunnel) then (printout t "Esti in tunel."  crlf)
- 			    (assert (ag_bel (bel_type fluent) (bel_pname no-overtaking-zone) (bel_pval yes)))
-			    (printout t "Depasire interzisa! "  crlf)
-		       else (printout t "Nu esti in tunel."  crlf)
-			    (assert (ag_bel (bel_type fluent) (bel_pname no-overtaking-zone) (bel_pval no)))
-			    (printout t "Depasire permisa! "  crlf)
-    )
-)
-
 (deffunction iesire_tunel(?l1 ?l2)
   (if (< 300 (- ?l2 ?l1))  then (return true)
   						  else (return false)
   )
+)
+
+(defrule AGENT::tunel
+	(declare (salience 100))
+    (timp (valoare ?t))
+    (ag_bel (bel_type moment) (bel_pobj ev9))
+    (ag_bel (bel_type moment) (bel_pobj road_sign1) (bel_pname type) (bel_pval tunnel))
+=>
+    (assert (ag_bel (bel_type fluent) (bel_pname tunel) (bel_pval no))))
+)
+
+(defrule AGENT::tunel_sfarsit
+	(declare (salience 100))
+    (timp (valoare ?t))
+    (ag_bel (bel_type moment) (bel_pobj ev9))
+    (ag_bel (bel_type moment) (bel_pobj road_sign1) (bel_pname type) (bel_pval tunnel))
+    ?f <- (ag_bel (bel_type fluent) (bel_pname tunel) (bel_pval no)))
+    (test (eq (iesire_tunel ?l1 ?l2) true))
+=>
+    (retract ?f)
 )
 
 (defrule AGENT::final_tunel
@@ -321,14 +333,19 @@
     (timp (valoare ?t))
     (ag_bel (bel_type moment) (bel_pobj ev10))
     (ag_bel (bel_type moment) (bel_pobj road1) (bel_pname visibility) (bel_pval ?v))
+    (test (< ?v 50))
 =>
-        (if (< ?v 50) then (printout t "Vizibilitate redusa sub 50 de metri."  crlf)
-			   (assert (ag_bel (bel_type fluent) (bel_pname no-overtaking-zone) (bel_pval no)))
-			   (printout t "Depasire interzisa! "  crlf)
-		      else (printout t "Vizibilitatea este mai mare de 50 de metri."  crlf)
-			   (assert (ag_bel (bel_type fluent) (bel_pname no-overtaking-zone) (bel_pval no)))
-			   (printout t "Depasire permisa! "  crlf)
-        )
+    (assert (ag_bel (bel_type fluent) (bel_pname vizibilitate_sub50) (bel_pval yes)))
+)
+
+(defrule AGENT::vizibilitate_peste50
+    (timp (valoare ?t))
+    (ag_bel (bel_type moment) (bel_pobj ev10))
+    (ag_bel (bel_type moment) (bel_pobj road1) (bel_pname visibility) (bel_pval ?v))
+    ?f <- (ag_bel (bel_type fluent) (bel_pname vizibilitate_sub50) (bel_pval yes))
+    (test (>= ?v 50))
+=>
+    (retract ?f)
 )
 
 ;-- TODO: daca am Semn trecere de pietoni (nu marcaj, ci semn!) - switch fluent dupa o anumita distanta parcursa
