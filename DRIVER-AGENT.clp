@@ -115,7 +115,7 @@
     (ag_bel (bel_type moment) (bel_pobj car1) (bel_pname distance_to_car2) (bel_pval ?d1))
     (ag_bel (bel_type moment) (bel_pobj line1) (bel_pname type) (bel_pval broken_white_line))
     ?f <- (ag_bel (bel_type fluent) (bel_pname masina_pe_contrasens) (bel_pval yes))
-    (test (<= ?d1 500))
+    (test (>= ?d1 500))
 =>
     (retract ?f)
 )
@@ -164,14 +164,22 @@
     (ag_bel (bel_type moment) (bel_pobj road_sign1) (bel_pname exists) (bel_pval false))
     (ag_bel (bel_type moment) (bel_pobj traffic_light1) (bel_pname intermittent) (bel_pval false))
     (ag_bel (bel_type moment) (bel_pobj officer1) (bel_pname exists) (bel_pval false))
+    (test (and (and (eq ?c1 false) (eq ?c2 true)) (eq ?c3 false)))
 =>
-    (if (and (and (eq ?c1 false) (eq ?c2 true)) (eq ?c3 false)) then (printout t "Intersectie nesemnalizata."  crlf) 
-								     (assert (ag_bel (bel_type fluent) (bel_pname no-overtaking-zone) (bel_pval yes)))
-								     (printout t "Depasire interzisa!"  crlf) 
-							        else (printout t "Intersectie semnalizata. "  crlf) 
-								     (assert (ag_bel (bel_type fluent) (bel_pname no-overtaking-zone) (bel_pval no)))
-								     (printout t "Depasire permisa! "  crlf) 
-    )
+    (assert (ag_bel (bel_type fluent) (bel_pname intersectie_nesemnalizata) (bel_pval yes)))
+)
+
+(defrule AGENT::sfarsit_intersectie_nesemnalizata
+    (timp (valoare ?t))
+    (ag_bel (bel_type moment) (bel_pobj ev5))
+    (ag_bel (bel_type moment) (bel_pobj intersection1) (bel_pname partof) (bel_pval ev5))
+    (ag_bel (bel_type moment) (bel_pobj road_sign1) (bel_pname exists) (bel_pval false))
+    (ag_bel (bel_type moment) (bel_pobj traffic_light1) (bel_pname intermittent) (bel_pval false))
+    (ag_bel (bel_type moment) (bel_pobj officer1) (bel_pname exists) (bel_pval false))
+    ?f <- (ag_bel (bel_type fluent) (bel_pname cale_ferat) (bel_pval yes))
+    (test (not (and (and (eq ?c1 false) (eq ?c2 true)) (eq ?c3 false))))
+=>
+    (retract ?f)
 )
 
 (defrule AGENT::linie_continua
@@ -208,38 +216,39 @@
     (timp (valoare ?t))
     (ag_bel (bel_type moment) (bel_pobj ev8))
     (ag_bel (bel_type moment) (bel_pobj road_sign1) (bel_pname type) (bel_pval ?v))
+    (test (eq ?v pedestrian_crossing))
 =>
-    (if (eq ?v pedestrian_crossing) then (printout t "Trecere de pietoni semnalizata."  crlf)
-					 (assert (ag_bel (bel_type fluent) (bel_pname no-overtaking-zone) (bel_pval yes)))
-					 (printout t "Depasire interzisa! "  crlf)
-				    else (printout t "Nu este trecere de pietoni."  crlf)
-					 (assert (ag_bel (bel_type fluent) (bel_pname no-overtaking-zone) (bel_pval no)))
-					 (printout t "Depasire permisa! "  crlf)
+	(assert (ag_bel (bel_type fluent) (bel_pname trecere_pietoni) (bel_pval yes)))
     )
 )
 
-(defrule AGENT::curba
+(defrule AGENT::sfarsit_trecere_pietoni
 	(declare (salience 100))
+    (timp (valoare ?t))
+    (ag_bel (bel_type moment) (bel_pobj ev8))
+    (ag_bel (bel_type moment) (bel_pobj road_sign2) (bel_pname type) (bel_pval pedestrian_crossing))
+    ?f <- (ag_bel (bel_type fluent) (bel_pname trecere_pietoni) (bel_pval yes))
+=>
+	(retract ?f)
+)
+
+
+(defrule AGENT::curba
     (timp (valoare ?t))
     (ag_bel (bel_type moment) (bel_pobj ev11))
     (ag_bel (bel_type moment) (bel_pobj road_sign1) (bel_pname type) (bel_pval ?v))
+    (test (eq ?v any_turn))
 =>
-    (if (eq ?v any_turn) then (printout t "Curba semnalizata."  crlf)
-					 (assert (ag_bel (bel_type fluent) (bel_pname no-overtaking-zone) (bel_pval yes)))
-					 (printout t "Depasire interzisa! "  crlf)
-    )
+	(assert (ag_bel (bel_type fluent) (bel_pname curba) (bel_pval yes)))
 )
 
 (defrule AGENT::final_curba
-	(declare (salience -100))
     (timp (valoare ?t))
     (ag_bel (bel_type moment) (bel_pobj ev11))
-    ?f <- (ag_bel (bel_type fluent) (bel_pname no-overtaking-zone) (bel_pval yes))
+    ?f <- (ag_bel (bel_type fluent) (bel_pname curba) (bel_pval yes))
     (ag_bel (bel_type moment) (bel_pobj road_sign2) (bel_pname type) (bel_pval any_turn))
 =>
-    (printout t "Ati trecut de curba" crlf))
     (retract ?f)
-    (assert (ag_bel (bel_type fluent) (bel_pname no-overtaking-zone) (bel_pval no)))
 )
 
 
@@ -291,29 +300,20 @@
 )
 
 (defrule AGENT::pod_mobil
-	(declare (salience 100))
     (timp (valoare ?t))
     (ag_bel (bel_type moment) (bel_pobj ev12))
     (ag_bel (bel_type moment) (bel_pobj road_sign1) (bel_pname type) (bel_pval ?v))
+    (test (eq ?v mobile_bridge))
 =>
-    (if (eq ?v mobile_bridge) then (printout t "Esti pe un pod mobil."  crlf)
- 			    (assert (ag_bel (bel_type fluent) (bel_pname no-overtaking-zone) (bel_pval yes)))
-			    (printout t "Depasire interzisa! "  crlf)
-		       else (printout t "Nu esti pe podul mobil"  crlf)
-			    (assert (ag_bel (bel_type fluent) (bel_pname no-overtaking-zone) (bel_pval no)))
-			    (printout t "Depasire permisa! "  crlf)
-    )
+    (assert (ag_bel (bel_type fluent) (bel_pname pod_mobil) (bel_pval yes)))
 )
 
 (defrule AGENT::final_pod_mobil
-	(declare (salience -100))
     (timp (valoare ?t))
     (ag_bel (bel_type moment) (bel_pobj ev12))
     ?f <- (ag_bel (bel_type fluent) (bel_pname no-overtaking-zone) (bel_pval yes))
     (ag_bel (bel_type moment) (bel_pobj road_sign2) (bel_pname type) (bel_pval mobile_bridge))
 =>
-    (printout t "Ati trecut de podul mobil." crlf))
-    (assert (ag_bel (bel_type fluent) (bel_pname no-overtaking-zone) (bel_pval no)))
     (retract ?f)
 )
 
