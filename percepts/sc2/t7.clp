@@ -16,4 +16,4 @@
 (ag_percept (percept_pobj car1) (percept_pname distance_to_car2) (percept_pval 1))
 
 (ag_percept (percept_pobj line1) (percept_pname partof) (percept_pval road1))
-(ag_percept (percept_pobj line1) (percept_pname type) (percept_pval continuous_line))
+(ag_percept (percept_pobj line1) (percept_pname type) (percept_pval broken_white_line))

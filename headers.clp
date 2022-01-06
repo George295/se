@@ -31,7 +31,7 @@
 ;(defglobal ?*sim-in-debug* = TRUE)
 (defglobal ?*percepts-in-debug* = FALSE)
 ;(defglobal ?*percepts-in-debug* = TRUE)
-(defglobal ?*perceptsDir* = "./percepts/sc1/")
+(defglobal ?*perceptsDir* = "./percepts/sc2/")
 
 
 (deftemplate PERCEPT-MANAGER::timp (slot valoare))

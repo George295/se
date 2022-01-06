@@ -138,6 +138,29 @@
     (retract ?f)
 )
 
+(defrule AGENT::cont_cont
+    (timp (valoare ?t))
+    (ag_bel (bel_type moment) (bel_pobj ev17))
+    (ag_bel (bel_type moment) (bel_pobj line1) (bel_pname type) (bel_pval continuous_line))
+    (ag_bel (bel_type moment) (bel_pobj line2) (bel_pname type) (bel_pval continuous_line))
+=>
+    (assert (ag_bel (bel_type fluent) (bel_pname cont_cont) (bel_pval yes)))
+)
+
+(defrule AGENT::cont_cont_sfarsit
+    (timp (valoare ?t))
+    (ag_bel (bel_type moment) (bel_pobj ev17))
+    (ag_bel (bel_type moment) (bel_pobj line1) (bel_pname type) (bel_pval ?u))
+    (ag_bel (bel_type moment) (bel_pobj line2) (bel_pname type) (bel_pval ?v))
+    (test (or (not (eq ?u continuous_line)) (not (eq ?v continuous_line))))
+    ?f <-  (ag_bel (bel_type fluent) (bel_pname cont_cont) (bel_pval yes))
+=>
+    (printout t "cotn_cont" crlf)
+    (retract ?f)
+)
+
+
+
 (defrule AGENT::semn_depasire_interzisa
     (timp (valoare ?t))
     (ag_bel (bel_type moment) (bel_pobj ev4))
@@ -174,7 +197,7 @@
     (ag_bel (bel_type moment) (bel_pobj road_sign1) (bel_pname exists) (bel_pval ?c1))
     (ag_bel (bel_type moment) (bel_pobj traffic_light1) (bel_pname intermittent) (bel_pval ?c2))
     (ag_bel (bel_type moment) (bel_pobj officer1) (bel_pname exists) (bel_pval ?c3))
-    ?f <- (ag_bel (bel_type fluent) (bel_pname cale_ferat) (bel_pval yes))
+    ?f <- (ag_bel (bel_type fluent) (bel_pname intersectie_nesemnalizata) (bel_pval yes))
     (test (not (and (and (eq ?c1 false) (eq ?c2 true)) (eq ?c3 false))))
 =>
     (retract ?f)
@@ -251,6 +274,7 @@
     ?f <- (ag_bel (bel_type fluent) (bel_pname curba) (bel_pval yes))
     (ag_bel (bel_type moment) (bel_pobj road_sign2) (bel_pname type) (bel_pval any_turn))
 =>
+    (printout t "Curba" crlf)
     (retract ?f)
 )
 
@@ -331,11 +355,21 @@
 (defrule AGENT::validate-overtaking
     (declare (salience -10))
     ?f <- (ag_bel (bel_type moment) (bel_pname overtaking-maneuver) (bel_pval prohibited))
-    ; (not (ag_bel (bel_type fluent) (bel_pname no-overtaking-zone) (bel_pval yes)))
-    ; (not (ag_bel (bel_type fluent) (bel_pname cale_ferat) (bel_pval yes)))
+    (not (ag_bel (bel_type fluent) (bel_pname cale_ferat) (bel_pval yes)))
     (not (ag_bel (bel_type fluent) (bel_pname coloana_oficiala) (bel_pval yes)))
     (not (ag_bel (bel_type fluent) (bel_pname pod) (bel_pval yes)))
-    (not (ag_bel (bel_type fluent) (bel_pname pod) (bel_pval yes)))
+    (not (ag_bel (bel_type fluent) (bel_pname masina_pe_contrasens) (bel_pval yes)))
+    (not (ag_bel (bel_type fluent) (bel_pname cont_necont) (bel_pval yes)))
+    (not (ag_bel (bel_type fluent) (bel_pname cont_cont) (bel_pval yes)))
+    (not (ag_bel (bel_type fluent) (bel_pname semn_depasire_interzisa) (bel_pval yes)))
+    (not (ag_bel (bel_type fluent) (bel_pname intersectie_nesemnalizata) (bel_pval yes)))
+    (not (ag_bel (bel_type fluent) (bel_pname linie_continua) (bel_pval yes)))
+    (not (ag_bel (bel_type fluent) (bel_pname statie_tramvai_fara_refugiu) (bel_pval yes)))
+    (not (ag_bel (bel_type fluent) (bel_pname trecere_pietoni) (bel_pval yes)))
+    (not (ag_bel (bel_type fluent) (bel_pname curba) (bel_pval yes)))
+    (not (ag_bel (bel_type fluent) (bel_pname tunel) (bel_pval yes)))
+    (not (ag_bel (bel_type fluent) (bel_pname pod_mobil) (bel_pval yes)))
+    (not (ag_bel (bel_type fluent) (bel_pname vizibilitate_sub50) (bel_pval yes)))
 =>
     (if (eq ?*ag-in-debug* TRUE) then (printout t "    <D>validate-overtaking NU->DA (nu avem restrictii) " crlf))
     (retract ?f)
